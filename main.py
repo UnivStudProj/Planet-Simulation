@@ -7,7 +7,7 @@ import math
 pygame.init()
 
 WIDTH, HEIGHT = 800, 800
-FONT = pygame.font.SysFont('Cambria Math', 16)
+FONT = pygame.font.SysFont('Arial', 19)
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption('Planet Simulation')
 
@@ -20,11 +20,13 @@ class Planet:
     G = 6.67428e-11
    
     # 1 AU = 100 pixels
-    # Lower => less planets sizes
-    SCALE = 250 / AU
+    # Lower => less distance between planets
+    SCALE = 200 / AU
     
     # time pass per 1 frame 
     TIMESTEP = 3600 * 12
+
+    i = 0
     
     def __init__(self, x, y, radius, color, mass):
         self.x = x
@@ -47,10 +49,9 @@ class Planet:
         x = self.x * self.SCALE + WIDTH / 2
         y = self.y * self.SCALE + HEIGHT / 2
         
-        
         # Drawing orbits
         if len(self.orbit) > 1: 
-            update_points = [] 
+            update_points = []
             for point in self.orbit:
                 orbit_x, orbit_y = point
                 orbit_x = orbit_x * self.SCALE + WIDTH / 2
@@ -58,7 +59,7 @@ class Planet:
                 update_points.append((orbit_x, orbit_y))
             
             pygame.draw.lines(win, self.color, False, update_points, 2)
-            
+           
         pygame.draw.circle(win, self.color, (x, y), self.radius)
         
         # Distance text 
@@ -66,7 +67,7 @@ class Planet:
             distance_text = FONT.render(f'{self.distance_to_sun / 1000:,.0f}km', 1, 'white')
             text_offset = distance_text.get_width() / 2
             win.blit(distance_text, (x - text_offset, y - text_offset))
-        
+     
     def attraction(self, other):
         # Other planet coords
         other_x, other_y = other.x, other.y
