@@ -1,4 +1,4 @@
 # Planet-Simulation
 
-Idead source:
+Idea source:
 https://www.youtube.com/watch?v=WTLPmUHTPqo
