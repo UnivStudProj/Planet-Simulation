@@ -27,9 +27,6 @@ class Planet:
     TIMESTEP = 3600 * 12
 
     def __init__(self, x, y, radius, color, mass):
-        self.x0 = x * self.SCALE + WIDTH / 2
-        self.y0 = y * self.SCALE + HEIGHT / 2
-        self.erase = False
         self.x = x
         self.y = y
         self.radius = radius
@@ -41,15 +38,21 @@ class Planet:
         self.orbit = []
         self.distance_to_sun = 0
         
+        # Velocity 
         self.x_vel = 0
         self.y_vel = 0
+        
+        # Trail making parameters
+        self.x0 = x * self.SCALE + WIDTH / 2
+        self.y0 = y * self.SCALE + HEIGHT / 2
+        self.erase = False
         
     def draw(self, win):
         # Scaling coordinates and 
         # setting the offset from the top left corner
         x = self.x * self.SCALE + WIDTH / 2
         y = self.y * self.SCALE + HEIGHT / 2
-        
+         
         # Drawing orbits
         if len(self.orbit) > 1: 
             update_points = []
@@ -60,13 +63,12 @@ class Planet:
                 update_points.append((orbit_x, orbit_y))
             
             pygame.draw.lines(win, self.color, False, update_points, 2)
-        
            
         pygame.draw.circle(win, self.color, (x, y), self.radius)
         
         # Distance text 
         if not self.sun:
-            distance_text = FONT.render(f'{self.distance_to_sun / 1000:,.0f}km', 1, 'white')
+            distance_text = FONT.render(f'{self.distance_to_sun / 1000:,.0f} km', 1, 'white')
             text_offset = distance_text.get_width() / 2
             win.blit(distance_text, (x - text_offset, y - text_offset))
            
@@ -77,7 +79,7 @@ class Planet:
             # adding length condition to escape erasing at the beginning
             elif erase_y and len(self.orbit) > 5:
                 self.erase = True
-     
+    
     def attraction(self, other):
         # Other planet coords
         other_x, other_y = other.x, other.y
@@ -96,22 +98,26 @@ class Planet:
         return force_x, force_y
     
     def update_position(self, planets):
-        total_fx = total_fy = 0
-        for planet in planets:
-            if self == planet:
-                continue
+        if not self.sun:
+            total_fx = total_fy = 0
+            for planet in planets:
+                if self == planet:
+                    continue
+                
+                fx, fy = self.attraction(planet)
+                total_fx += fx
+                total_fy += fy
+                
+            self.x_vel += total_fx / self.mass * self.TIMESTEP
+            self.y_vel += total_fy / self.mass * self.TIMESTEP
             
-            fx, fy = self.attraction(planet)
-            total_fx += fx
-            total_fy += fy
-            
-        self.x_vel += total_fx / self.mass * self.TIMESTEP
-        self.y_vel += total_fy / self.mass * self.TIMESTEP
+            self.x += self.x_vel * self.TIMESTEP
+            self.y += self.y_vel * self.TIMESTEP
+        else:
+            self.x += 9e3 * self.TIMESTEP
         
-        self.x += self.x_vel * self.TIMESTEP
-        self.y += self.y_vel * self.TIMESTEP
         self.orbit.append((self.x, self.y))
-        
+
 
 def main():
     run = True
@@ -151,5 +157,5 @@ def main():
     
     pygame.quit()
     
-
-main()
+if __name__ == '__main__':
+    main()
