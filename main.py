@@ -49,7 +49,7 @@ class Planet:
         
     def draw(self, win):
         # Scaling coordinates and 
-        # setting the offset from the top left corner
+        # adding the offset to move from the top left corner
         x = self.x * self.SCALE + WIDTH / 2
         y = self.y * self.SCALE + HEIGHT / 2
          
@@ -61,7 +61,7 @@ class Planet:
                 orbit_x = orbit_x * self.SCALE + WIDTH / 2
                 orbit_y = orbit_y * self.SCALE + HEIGHT / 2
                 update_points.append((orbit_x, orbit_y))
-            
+
             pygame.draw.lines(win, self.color, False, update_points, 2)
            
         pygame.draw.circle(win, self.color, (x, y), self.radius)
@@ -113,8 +113,6 @@ class Planet:
             
             self.x += self.x_vel * self.TIMESTEP
             self.y += self.y_vel * self.TIMESTEP
-        else:
-            self.x += 9e3 * self.TIMESTEP
         
         self.orbit.append((self.x, self.y))
 
