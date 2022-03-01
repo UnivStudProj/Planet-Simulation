@@ -26,9 +26,10 @@ class Planet:
     # time pass per 1 frame 
     TIMESTEP = 3600 * 12
 
-    i = 0
-    
     def __init__(self, x, y, radius, color, mass):
+        self.x0 = x * self.SCALE + WIDTH / 2
+        self.y0 = y * self.SCALE + HEIGHT / 2
+        self.erase = False
         self.x = x
         self.y = y
         self.radius = radius
@@ -59,6 +60,7 @@ class Planet:
                 update_points.append((orbit_x, orbit_y))
             
             pygame.draw.lines(win, self.color, False, update_points, 2)
+        
            
         pygame.draw.circle(win, self.color, (x, y), self.radius)
         
@@ -67,6 +69,14 @@ class Planet:
             distance_text = FONT.render(f'{self.distance_to_sun / 1000:,.0f}km', 1, 'white')
             text_offset = distance_text.get_width() / 2
             win.blit(distance_text, (x - text_offset, y - text_offset))
+           
+            # defining at what 'y' erase starts 
+            erase_y = self.y0 - 1 <= int(y) <= self.y0 + 1
+            if self.erase:
+                self.orbit.pop(0)
+            # adding length condition to escape erasing at the beginning
+            elif erase_y and len(self.orbit) > 5:
+                self.erase = True
      
     def attraction(self, other):
         # Other planet coords
