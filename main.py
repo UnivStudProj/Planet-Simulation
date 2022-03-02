@@ -1,7 +1,6 @@
 # Idead source:
 # https://www.youtube.com/watch?v=WTLPmUHTPqo
 
-from tracemalloc import start
 import pygame
 import math
 import numpy as np
@@ -119,58 +118,33 @@ class Planet:
         self.orbit.append((self.x, self.y))
 
 
-class Stars:
-    SLOW_OFFSET = 0.1
-    MEDIUM_OFFSET = 0.2
-    FAST_OFFSET = 0.3
-    STARS_COLORS = [
-        '#f72585', '#b5179e', '#7209b7', '#560BAD', '#480CA8',
-        '#3A0CA3', '#3F37C9', '#4361EE', '#4895EF', '#4CC9F0',
-    ]
+class Star:
     
-    def __init__(self, *starsAmount):
-        self.__slowStars = starsAmount[0]
-        self.__mediumStars = starsAmount[1]
-        self.__fastStars = starsAmount[2]
-    
-        self.slowField = np.array(self.setField(self.__slowStars), dtype=float)
-        self.mediumField = np.array(self.setField(self.__mediumStars), dtype=float)
-        self.fastField = np.array(self.setField(self.__fastStars), dtype=float)
-    
+    def __init__(self, amount, color, offset, size):
+        self.amount = amount
+        self.color = color
+        self.offset = offset
+        self.size = size 
+        self.field = self.setField(self.amount)
+        
     @staticmethod 
-    def setField(starsType):
-        starX = np.random.uniform(0, WIDTH, size=(starsType))
-        starY = np.random.uniform(0, HEIGHT, size=(starsType))
+    def setField(amount):
+        field = np.empty((amount, 2), dtype=int)
+        for i in range(0, np.shape(field)[0]):
+            x = np.random.randint(0, WIDTH)
+            y = np.random.randint(0, HEIGHT)
+            field[i] = [x, y]
         
-        return (starX, starY)
-    
-    def drawStars(self):
-        slow = self.checkHeightPos(self.slowField, self.SLOW_OFFSET) 
-        medium = self.checkHeightPos(self.mediumField, self.MEDIUM_OFFSET) 
-        fast = self.checkHeightPos(self.fastField, self.FAST_OFFSET)
+        return field
         
-        self.drawing(slow) 
-        self.drawing(medium) 
-        self.drawing(fast) 
-    
-    def drawing(self, star):
-        color = self.STARS_COLORS[np.random.randint(0, len(self.STARS_COLORS))]
-        for x, y in zip(star[0], star[1]):
-            pygame.draw.circle(WIN, color, (x, y), np.random.randint(1, 4))
-        
-    
-    @staticmethod
-    def checkHeightPos(star, starOffset):
-        for y in star[1]:
-            curr_index = list(star[1]).index(y)
-            star[1][curr_index] += starOffset
-            if y > HEIGHT:
-                # current 'y'
-                star[1][curr_index] = -1
-                # current 'x'
-                star[0][curr_index] = np.random.randint(0, WIDTH)
-                
-        return star 
+    def draw(self):
+        for star in self.field:
+            if star[1] > HEIGHT:
+                star[0] = np.random.randint(0, WIDTH)
+                star[1] = -1
+            star[1] += self.offset
+            
+            pygame.draw.circle(WIN, self.color, star, self.size)
         
 
 def main():
@@ -195,7 +169,11 @@ def main():
     
     planets = [sun, earth, mars, mercury, venus]
     
-    star = Stars(25, 15, 5)
+    star_slow = Star(30, '#b5179e', 1, 1)
+    star_medium = Star(20, '#480ca8', 4, 2)
+    star_fast = Star(10, '#4cc9f0', 8, 3)
+    
+    stars = [star_slow, star_medium, star_fast]
     
     while run:
         clock.tick(75) # 75 fps
@@ -205,9 +183,11 @@ def main():
             if event.type == pygame.QUIT:
                 run = False
         
+        for star in stars:
+            star.draw() 
+         
         for planet in planets:
             planet.update_position(planets)
-            star.drawStars()
             planet.draw()
 
             
