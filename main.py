@@ -1,8 +1,10 @@
 # Idead source:
 # https://www.youtube.com/watch?v=WTLPmUHTPqo
 
+from tracemalloc import start
 import pygame
 import math
+import numpy as np
 
 pygame.init()
 
@@ -47,7 +49,7 @@ class Planet:
         self.y0 = y * self.SCALE + HEIGHT / 2
         self.erase = False
         
-    def draw(self, win):
+    def draw(self):
         # Scaling coordinates and 
         # adding the offset to move from the top left corner
         x = self.x * self.SCALE + WIDTH / 2
@@ -62,15 +64,15 @@ class Planet:
                 orbit_y = orbit_y * self.SCALE + HEIGHT / 2
                 update_points.append((orbit_x, orbit_y))
 
-            pygame.draw.lines(win, self.color, False, update_points, 2)
+            pygame.draw.lines(WIN, self.color, False, update_points, 2)
            
-        pygame.draw.circle(win, self.color, (x, y), self.radius)
+        pygame.draw.circle(WIN, self.color, (x, y), self.radius)
         
         # Distance text 
         if not self.sun:
             distance_text = FONT.render(f'{self.distance_to_sun / 1000:,.0f} km', 1, 'white')
             text_offset = distance_text.get_width() / 2
-            win.blit(distance_text, (x - text_offset, y - text_offset))
+            WIN.blit(distance_text, (x - text_offset, y - text_offset))
            
             # defining at what 'y' erase starts 
             erase_y = self.y0 - 1 <= int(y) <= self.y0 + 1
@@ -117,6 +119,60 @@ class Planet:
         self.orbit.append((self.x, self.y))
 
 
+class Stars:
+    SLOW_OFFSET = 0.1
+    MEDIUM_OFFSET = 0.2
+    FAST_OFFSET = 0.3
+    STARS_COLORS = [
+        '#f72585', '#b5179e', '#7209b7', '#560BAD', '#480CA8',
+        '#3A0CA3', '#3F37C9', '#4361EE', '#4895EF', '#4CC9F0',
+    ]
+    
+    def __init__(self, *starsAmount):
+        self.__slowStars = starsAmount[0]
+        self.__mediumStars = starsAmount[1]
+        self.__fastStars = starsAmount[2]
+    
+        self.slowField = np.array(self.setField(self.__slowStars), dtype=float)
+        self.mediumField = np.array(self.setField(self.__mediumStars), dtype=float)
+        self.fastField = np.array(self.setField(self.__fastStars), dtype=float)
+    
+    @staticmethod 
+    def setField(starsType):
+        starX = np.random.uniform(0, WIDTH, size=(starsType))
+        starY = np.random.uniform(0, HEIGHT, size=(starsType))
+        
+        return (starX, starY)
+    
+    def drawStars(self):
+        slow = self.checkHeightPos(self.slowField, self.SLOW_OFFSET) 
+        medium = self.checkHeightPos(self.mediumField, self.MEDIUM_OFFSET) 
+        fast = self.checkHeightPos(self.fastField, self.FAST_OFFSET)
+        
+        self.drawing(slow) 
+        self.drawing(medium) 
+        self.drawing(fast) 
+    
+    def drawing(self, star):
+        color = self.STARS_COLORS[np.random.randint(0, len(self.STARS_COLORS))]
+        for x, y in zip(star[0], star[1]):
+            pygame.draw.circle(WIN, color, (x, y), np.random.randint(1, 4))
+        
+    
+    @staticmethod
+    def checkHeightPos(star, starOffset):
+        for y in star[1]:
+            curr_index = list(star[1]).index(y)
+            star[1][curr_index] += starOffset
+            if y > HEIGHT:
+                # current 'y'
+                star[1][curr_index] = -1
+                # current 'x'
+                star[0][curr_index] = np.random.randint(0, WIDTH)
+                
+        return star 
+        
+
 def main():
     run = True
     clock = pygame.time.Clock()
@@ -139,6 +195,8 @@ def main():
     
     planets = [sun, earth, mars, mercury, venus]
     
+    star = Stars(25, 15, 5)
+    
     while run:
         clock.tick(75) # 75 fps
         WIN.fill('#02010E')
@@ -149,7 +207,9 @@ def main():
         
         for planet in planets:
             planet.update_position(planets)
-            planet.draw(WIN)
+            star.drawStars()
+            planet.draw()
+
             
         pygame.display.update()
     
