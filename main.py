@@ -2,7 +2,6 @@
 # https://www.youtube.com/watch?v=WTLPmUHTPqo
 
 import pygame
-import math
 import numpy as np
 
 pygame.init()
@@ -38,6 +37,7 @@ class Planet:
         self.sun = False
         self.orbit = []
         self.distance_to_sun = 0
+        self.sunLine = []
         
         # Velocity 
         self.x_vel = 0
@@ -80,21 +80,33 @@ class Planet:
             # adding length condition to escape erasing at the beginning
             elif erase_y and len(self.orbit) > 5:
                 self.erase = True
+                
+        # Sun moving illusion
+        else:
+            # Filling an empty list
+            if not self.sunLine:
+                self.sunLine.append((x, y))
+                self.sunLine.append((x, y + self.radius))
+            # Draw line if it not off the screen
+            elif not self.sunLine[-1][1] > HEIGHT:
+                self.sunLine.append((x, self.sunLine[-1][1] + 0.1))
+            
+            pygame.draw.lines(WIN, self.color, False, self.sunLine, 2)
     
     def attraction(self, other):
         # Other planet coords
         other_x, other_y = other.x, other.y
         distance_x = other_x - self.x
         distance_y = other_y - self.y 
-        distance = math.sqrt(distance_x **2 + distance_y ** 2)
+        distance = np.sqrt(distance_x **2 + distance_y ** 2)
         
         if other.sun:
             self.distance_to_sun = distance
 
         force = self.G * self.mass * other.mass / distance ** 2
-        theta = math.atan2(distance_y, distance_x)
-        force_x = math.cos(theta) * force
-        force_y = math.sin(theta) * force
+        theta = np.arctan2(distance_y, distance_x)
+        force_x = np.cos(theta) * force
+        force_y = np.sin(theta) * force
         
         return force_x, force_y
     
